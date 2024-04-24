@@ -1,6 +1,6 @@
 class ScreensController < ApplicationController 
   before_action :set_screen, only: [:show, :edit, :update]
-  before_action :authorize_admin, only: [:create, :destroy, :update, :edit, :show]
+  # before_action :authorize_admin, only: [:create, :destroy, :update, :edit, :show]
 
   def index 
     @theaters = current_user.theaters
@@ -15,7 +15,6 @@ class ScreensController < ApplicationController
   # end 
   
   def show  
-    # @screen = Screen.find(params[:id])   
     @theaters = current_user.theaters   
     authorize @screen
   end 
@@ -25,7 +24,6 @@ class ScreensController < ApplicationController
     @theaters = current_user.theaters  
     @theater = Theater.find_by(id: session[:current_theater_id])
     @users = User.all
-    render 'new'
   end
   
 
@@ -45,7 +43,6 @@ class ScreensController < ApplicationController
   end
   
   def edit
-    # @screen = Screen.find(params[:id]) 
     authorize @screen
     @theaters = current_user.theaters  
     @theater = @screen.theater
@@ -54,7 +51,6 @@ class ScreensController < ApplicationController
   
 
   def update 
-    # @screen = Screen.find(params[:id]) 
     if @screen.update(screen_params)  
       flash.now[:success] = "Screen updated"
       redirect_to @screen
@@ -82,11 +78,10 @@ class ScreensController < ApplicationController
     params.require(:screen).permit(:screen_name, :screen_type, :status, :theater_id,:user_id, slots_attributes: [:id, :start_time,:end_time])
   end
   
-  def authorize_admin 
-
-    unless current_user&.theater_admin?
-      redirect_to theater_path(current_user.theater_ids) , alert: "You are not authorized to perform this action."
-    end
-  end 
+  # def authorize_admin 
+  #   unless current_user&.theater_admin?
+  #     redirect_to theater_path(current_user.theater_ids) , alert: "You are not authorized to perform this action."
+  #   end
+  # end 
 
 end

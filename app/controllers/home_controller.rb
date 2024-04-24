@@ -7,8 +7,7 @@ class HomeController < ApplicationController
       session[:current_theater_id] ||= @theaters.first.id if @theaters.present?
       redirect_to theater_path(current_user.theater_ids)
     else
-      start_of_week = Date.current.beginning_of_week
-      # end_of_week = Date.current.end_of_week  
+      start_of_week = Date.current.beginning_of_week 
       end_date = Date.current 
       # @shows = Show.where("start_date <= ? AND end_date >= ?", end_of_week, start_of_week) 
       # @shows = Show.where("start_date <= ? AND end_date >= ? ", end_date, start_of_week)  

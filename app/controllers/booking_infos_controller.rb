@@ -1,6 +1,6 @@
 class BookingInfosController < ApplicationController
   before_action :set_booking_info, only: [:show, :edit, :update, :destroy]  
-  before_action :authorize_admin, only: [:destroy,:edit, :update]
+  # before_action :authorize_admin, only: [:destroy,:edit, :update]
 
   def index  
     @booking_infos = current_user.booking_infos
@@ -58,17 +58,15 @@ class BookingInfosController < ApplicationController
     @users = User.all  
     @screens = Screen.all 
     @shows = Show.all
-    render 'new'
   end  
  
   def create   
-  
     @booking_info = BookingInfo.new(booking_info_params)  
-    @booking_info.user = current_user  
+    @booking_info.user = current_user   
     @show = Show.find(params[:booking_info][:show_id])
     booked_tickets = @booking_info.no_of_tickets.to_i
     if @booking_info.save 
-
+     
       update_remaining_seats(@show, @booking_info.booking_date, booked_tickets)
      
       BookingInfoMailer.with(booking_info: @booking_info, user: current_user).booking_confirmation.deliver_now
@@ -112,36 +110,40 @@ class BookingInfosController < ApplicationController
 
   private  
 
-  def booking_info_params
-    params.require(:booking_info).permit(:screen_type, :number, :booking_date, :booking_time,:theater_id, :screen_id, :show_id, :no_of_tickets) 
-  end  
-
   def update_remaining_seats(show, date, booked_tickets)
     if show.end_date.nil?
       show.end_date = show.start_date
     end
 
     if show.start_date <= date && date <= show.end_date 
-      if date == Date.current
-        show.remaining_seats -= booked_tickets
-        show.save 
+      @show.show_times.each do |show_time|  
+        if ((date == Date.current ) && (show_time.time.strftime("%I:%M %p") == params[:booking_info][:booking_time]))  
+          show_time.remaining_seats -= booked_tickets   
+          show_time.save 
+        end
       end
-    end
-  end 
+    end 
+  end  
 
-  def set_booking_info
+  def booking_info_params
+    params.require(:booking_info).permit(:screen_type, :number, :booking_date, :booking_time,:theater_id, :screen_id, :show_id, :no_of_tickets) 
+  end  
+
+  def set_booking_info 
     @booking_info = BookingInfo.find_by(id: params[:id])
     if @booking_info.nil?
       redirect_to booking_infos_path, alert: "BookingInfo not found."
-    elsif current_user.theater_admin? && !current_user.theaters.exists?(@booking_info.theater_id)
-      redirect_to theater_path(current_user.theater_ids), alert: "You are not authorized to perform this action."
+    elsif current_user.user? && current_user != @booking_info.user
+      redirect_to booking_infos_path, alert: "You are not authorized to access this BookingInfo."     
+    elsif current_user.theater_admin? && !current_user.theaters.exists?(@booking_info.theater_id)   
+      redirect_to booking_infos_path, alert: "You are not authorized to access this BookingInfo."
     end
-  end 
+  end  
    
-  def authorize_admin
-    unless current_user&.theater_admin? 
-      redirect_to theater_path(current_user.theater_ids) , alert: "You are not authorized to perform this action."
-    end 
-  end 
+  # def authorize_admin
+  #   unless current_user&.theater_admin? 
+  #     redirect_to theater_path(current_user.theater_ids) , alert: "You are not authorized to perform this action."
+  #   end 
+  # end 
   
 end

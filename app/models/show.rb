@@ -8,11 +8,10 @@ class Show < ApplicationRecord
   has_many :show_slots ,dependent: :destroy
   has_many :slots, through: :show_slots ,dependent: :destroy  
  
-  accepts_nested_attributes_for :show_times
-  before_save :update_remaining_seats
+  accepts_nested_attributes_for :show_times  
   validate :not_past_date   
   validate :time_within_screen_slot  
-  validate :time_within_duration
+  validate :time_within_duration  
 
   def not_past_date
     if start_date.present? && start_date < Date.today
@@ -29,31 +28,25 @@ class Show < ApplicationRecord
   end 
   
   private
-
-  def update_remaining_seats
-    if total_seats_changed?
-      self.remaining_seats = total_seats
-    end
-  end 
-
   
   def time_within_screen_slot  
     duration  = self.duration
     slot_ids = slots.map(&:id)
-    time = show_times.map(&:time)  
+    time = show_times.map(&:time) 
+      return if time.compact.empty?
     time.each do |t|  
       slot_ids.each_with_index do |id, index|     
         if (t.strftime("%I:%M %p")  >= Slot.find(id).start_time.strftime("%I:%M %p") ) && (t.strftime("%I:%M %p")  <= Slot.find(id).end_time.strftime("%I:%M %p") )
           new_time = t + duration
           if new_time.strftime("%H:%M") > Slot.find(id).end_time.strftime("%H:%M")
             errors.add(:time, "Please enter valid  duration" )
-            break
+            break 
           else
             break
           end
         else 
           next if slot_ids[index + 1 ]
-          errors.add(:time, "Please add time related to screen slot" )
+          errors.add(:time, "Please add time related to screen slot" ) 
         end  
       end
     end 
@@ -62,7 +55,8 @@ class Show < ApplicationRecord
   def time_within_duration 
     duration_hours = duration.strftime("%H").to_i  
     duration_minutes = duration.strftime("%M").to_i
-    time_values = show_times.map(&:time)
+    time_values = show_times.map(&:time) 
+      return if time_values.compact.empty?
     time_values_in_minutes = time_values.map { |time| time.hour * 60 + time.min }
 
     time_values_in_minutes.each_with_index do |time, index|

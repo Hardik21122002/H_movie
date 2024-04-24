@@ -1,5 +1,5 @@
 class ApplicationController < ActionController::Base   
- 
+
   include Pundit::Authorization
 
     protect_from_forgery with: :exception
@@ -16,12 +16,12 @@ class ApplicationController < ActionController::Base
       render json: {}
     end
 
-    private  
-    
+    private   
 
     def user_not_authorized
       flash[:alert] = "You are not authorized to perform this action."
-      redirect_to theater_path(current_user.theater_ids) 
+      # redirect_to theater_path(current_user.theater_ids)  
+      redirect_to theater_path(session[:current_theater_id])
     end 
 
 end

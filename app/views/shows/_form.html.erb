@@ -13,7 +13,7 @@
 
   <div class="field">
     <%# <%= f.label :theater %> 
-    <%# <%= f.text_field :theater_name, value: @theater.name, readonly: true %> 
+    <%# <%= f.text_field :theater_name, value: @theater.name, readonly: true %>   
     <%= f.hidden_field :theater_id, value: @theater&.id %><br><br>
   </div>
 
@@ -24,22 +24,17 @@
 
   <div class="field">
     <%= f.label :screen_slot %>
-    <%= f.collection_select :slot_ids, Slot.all, :id, :start_time_and_end_time,{ prompt: true  },{id: 'slot-select' , multiple: true} %><br><br>
+    <%= f.collection_select :slot_ids, f.object.new_record? ? Slot.all : f.object.screen.slots, :id, :start_time_and_end_time,{ prompt: true  },{id: 'slot-select' , multiple: true} %><br><br>
   </div> 
 
   <div class="field">
     <%= f.label :name %>
     <%= f.text_field :name %><br><br> 
-  </div>   
-
-  <div class="field">
-    <%= f.label :Total_Seat %>
-    <%= f.number_field :total_seats ,min: 1%><br><br> 
-  </div>    
+  </div>  
 
   <div class="field">
     <%= f.label :duration %>
-    <%= f.time_select :duration%><br><br> 
+    <%= f.time_select :duration,default: {hour: 00, min: 00}%><br><br> 
   </div>    
          
   <div class="field">
@@ -47,18 +42,10 @@
     <%= f.date_field :start_date %><br><br>
   </div> 
   
-  <div id="time-slots-container">  
-  <%# , f.object.show_times %>
-  <%= f.fields_for :show_times do |show_times_form| %> 
-    <div class="field">
-      <%= show_times_form.label :time %>
-      <%= show_times_form.time_select :time ,class: "time-slot-input"%><br><br> 
-    </div>   
-  <% end %>  
-  </div> 
+  <div id="time-slots-container"></div>
   
-  <button type="button" id="add-time-slot-btn" onclick="addTimeSlot()">Add Time Slot</button><br><br>
-
+  <button type="button" id="add-time-slot-btn" >Add Time Slot</button><br><br>
+  
   <div class="field">
     <%= f.label :recurring %>
     <%= f.check_box :recurring ,id: 'show_recurring'%><br><br> 
@@ -89,26 +76,29 @@
   });
 </script>
 
-<script> 
-  var index = 0;
-  function addTimeSlot() {
-    index++;
-    // Create a new time slot input field
-    var inputField = document.createElement('div');
-    inputField.className = 'field';
-    inputField.innerHTML = '<label>Time</label>' +
-      '<input type="time" name="show[show_times_attributes]['+index+'][time]" class="time-slot-input">';
-    
-    // Append the new input field to the container
-    var timeSlotsContainer = document.getElementById('time-slots-container');
-    timeSlotsContainer.appendChild(inputField);  
+<script>
+  var index = <%= @show.show_times.size %>;
+  var container = document.getElementById('time-slots-container');
+  var addButton = document.getElementById('add-time-slot-btn');
 
-  } 
-  
-</script> 
+  addButton.addEventListener('click', function () {
+  index++;
 
-<script> 
-$(document).ready(function() {
+  var show_timesFields = document.createElement('div');
+  show_timesFields.className = 'field';
+  show_timesFields.innerHTML =
+    '<label>Time</label>' +
+    '<input type="time" name="show[show_times_attributes][' + index + '][time]" class="time-slot-input">' +'<br>'+
+    '<label>Total Seats</label>' +
+    '<input type="number" name="show[show_times_attributes][' + index + '][total_seats]" class="total-seats-input" min="1">';
+
+  container.appendChild(show_timesFields);
+});
+</script>
+
+<script>  
+  $(document).ready(function() { 
+
     $(document).on('change', '#screen-select', function() {
       var screenId = $(this).val();
       console.log("selected-screen", screenId);

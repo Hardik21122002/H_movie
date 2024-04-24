@@ -48,36 +48,3 @@
 <%= link_to ' Back to Reviews',  reviews_path %> 
 </div> 
 
-<%# <script>
-  $(document).ready(function() {
-  $('#theater-select').on('change', function() {
-    var theaterId = $(this).val();
-    console.log("selected-theater", theaterId);
-    $.ajax({
-      url: '/get_shows',
-      data: { theater_id: theaterId },
-      success: function(data) {
-        try {
-          var showDropdown = $('#show-select');
-          showDropdown.empty();
-          showDropdown.append($('<option>', {
-            value: '',
-            text: 'Select Show'
-          }));
-          $.each(data, function(index, show) {
-            showDropdown.append($('<option>', {
-              value: show.id,
-              text: show.name
-            }));
-          }); 
-        } catch (error) {
-          console.error('Error processing response:', error);
-        }
-      },
-      error: function(xhr, status, error) {
-        console.error('AJAX request error:', error);
-      }
-    });
-  });
-});
-</script> %>

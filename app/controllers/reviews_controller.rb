@@ -13,7 +13,7 @@ class ReviewsController < ApplicationController
         @review = Review.new 
         @theaters = Theater.all  
         @shows = Show.all  
-        @booking_info = BookingInfo.find(params[:booking_info_id]) if params[:booking_info_id].present?
+        @booking_info = BookingInfo.find(params[:booking_info_id]) 
         
         if @booking_info.present?
           @review.theater_id = @booking_info.theater_id
@@ -25,10 +25,10 @@ class ReviewsController < ApplicationController
         @review = Review.new(review_params) 
         @review.user = current_user   
         theater_name = params[:review][:theater]
-        @review.theater = Theater.find_by(name: theater_name) if theater_name.present?
+        @review.theater = Theater.find_by(name: theater_name)
       
         show_name = params[:review][:show]
-        @review.show= Show.find_by(name: show_name) if show_name.present?
+        @review.show= Show.find_by(name: show_name)
         if @review.save 
             flash.now[:success] = "Review Created" 
             redirect_to reviews_path
@@ -58,5 +58,5 @@ class ReviewsController < ApplicationController
         unless current_user == @review.user
           redirect_to root_path, alert: "You are not authorized to perform this action."
         end
-      end
+    end
 end

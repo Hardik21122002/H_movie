@@ -1,6 +1,6 @@
 class ShowsController < ApplicationController 
   before_action :set_show, only: [:show, :edit, :update]
-  before_action :authorize_admin, only: [:create, :destroy, :update, :edit, :show] 
+  # before_action :authorize_admin, only: [:create, :destroy, :update, :edit, :show] 
 
   def index 
     @theaters = current_user.theaters
@@ -20,7 +20,7 @@ class ShowsController < ApplicationController
     render json: slots
   end  
 
-  def show  
+  def show   
     @theaters = current_user.theaters
     authorize @show
   end  
@@ -30,34 +30,36 @@ class ShowsController < ApplicationController
     @show = Show.new  
     @slots = Slot.all
     @theater = Theater.find_by(id: session[:current_theater_id])
-    @screens = @theater ? @theater.screens : []    
-    render 'new' 
+    @screens = @theater ? @theater.screens : []     
   end 
+     
+  def create
+    @show = Show.new(show_params)
+    @theaters = current_user.theaters
+    @show.screen_id = params[:show][:screen_id]
   
-  def create   
-    @show = Show.new(show_params)    
-    @show.remaining_seats = @show.total_seats
-    @theaters = current_user.theaters 
-    @show.screen_id = params[:show][:screen_id] 
-    
     if show_exists_at_same_time?(@show)
-      redirect_to new_show_path , alert: "Another show is already scheduled for the selected screen at the specified time."     
-    elsif @show.save 
-      (params[:show][:time] || []).map { |time| @show.show_times.create(time: time) }     
+      redirect_to new_show_path, alert: "Another show is already scheduled for the selected screen at the specified time."
+    elsif @show.save
+      (params[:show][:time] || []).map { |time| @show.show_times.create(time: time) }
+      @show.show_times.each do |show_time|
+        show_time.remaining_seats = show_time.total_seats
+      end
       flash.now[:success] = "Show created"
-      redirect_to shows_path 
+      redirect_to shows_path
     else
       flash.now[:error] = "Show creation failed"
-      @screens = Screen.all
+      @theater = Theater.find_by(id: session[:current_theater_id])
+      @screens = @theater ? @theater.screens : []
       render 'new'
     end
-  end    
+  end
         
   def edit  
     @theaters = current_user.theaters
     authorize @show
-    @screens = Screen.all
-    @theater = @show.screen.theater
+    @theater = Theater.find_by(id: session[:current_theater_id])
+    @screens = @theater ? @theater.screens : []
   end
   
   def update     
@@ -95,14 +97,14 @@ class ShowsController < ApplicationController
   end 
   
   def show_params
-    params.require(:show).permit(:name, :duration, :recurring, :start_date, :end_date, :theater_id,:screen_id,:total_seats,:remaining_seats,slot_ids: [], show_times_attributes: [:id, :time])
+    params.require(:show).permit(:name, :duration, :recurring, :start_date, :end_date, :theater_id,:screen_id,slot_ids: [], show_times_attributes: [:id, :time,:total_seats,:remaining_seats])
   end 
        
-  def authorize_admin
-    unless current_user&.theater_admin?
-      redirect_to theater_path(current_user.theater_ids) , alert: "You are not authorized to perform this action."
-    end
-  end 
+  # def authorize_admin   
+  #   unless current_user&.theater_admin?  
+  #     redirect_to theater_path(current_user.theater_ids) , alert: "You are not authorized to perform this action."
+  #   end
+  # end 
 
 end
   

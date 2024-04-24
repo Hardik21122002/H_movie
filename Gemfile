@@ -66,4 +66,5 @@ end
 gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem 'gruff' 
 gem 'coffee-rails', '~> 5.0.0' 
-gem 'chosen-rails'
+gem 'chosen-rails' 
+
